@@ -1,0 +1,35 @@
+version: "3"
+services:
+  bootnode:
+    environment:
+    - nodekeyhex=3ce630390da3655bb0a61399e154614e58325f24641e76d1964b3240ec97e0f4
+    image: ml-fusion-bootnode
+    ports:
+    - 43015:40408/udp
+    - 32388:40408
+    networks:
+      chainnet:
+        ipv4_address: 172.33.9.101
+  miner-gateway:
+    environment:
+    - address=0xe2b6fbd7c3145229a44d542932280962f723ca4f
+    - bootnodeId=4b6170c4b20c2dbeea401ed33c7ada8ae5fb8e6395c1a3e9462b944bf00dc9adb2ca1f34ab968f2e023deabcf422bb131e7ebc2da0df241cc0408f4888720f56
+    - bootnodeIp=172.33.9.101
+    - networkId=4994
+    volumes:
+    - ~/blockchain-ops-provisioning/demo-projects/2830101-fusion-270/genesis:/genesis
+    - ~/blockchain-ops-provisioning/demo-projects/2830101-fusion-270/gateway/store:/fusion-node
+    image: ml-fusion-gateway
+    networks:
+      chainnet:
+       ipv4_address: 172.33.9.99
+    ports:
+    - 29000:9000
+    - 29001:9001
+
+networks:
+  chainnet:
+    driver: bridge
+    ipam:
+      config:
+      - subnet: 172.33.9.0/24
