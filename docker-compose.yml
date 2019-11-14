@@ -5,11 +5,12 @@ services:
     - nodekeyhex=3ce630390da3655bb0a61399e154614e58325f24641e76d1964b3240ec97e0f4
     image: ml-fusion-bootnode
     ports:
-    - 43015:40408/udp
-    - 32388:40408
+    - 43015:40407/udp
+    - 32388:40407
     networks:
       chainnet:
         ipv4_address: 172.33.9.101
+
   miner-gateway:
     environment:
     - address=0xe2b6fbd7c3145229a44d542932280962f723ca4f
@@ -17,16 +18,52 @@ services:
     - bootnodeIp=172.33.9.101
     - networkId=4994
     volumes:
-    - ~/blockchain-ops-provisioning/demo-projects/2830101-fusion-270/genesis:/genesis
-    - ~/blockchain-ops-provisioning/demo-projects/2830101-fusion-270/gateway/store:/fusion-node
+    - /Users/admin/blockchain-ops-provisioning/demo-projects/2830101-fusion-270/genesis:/genesis
+    - /Users/admin/blockchain-ops-provisioning/demo-projects/2830101-fusion-270/gateway/store:/fusion-node
     image: ml-fusion-gateway
     networks:
       chainnet:
        ipv4_address: 172.33.9.99
     ports:
-    - 29000:9000
-    - 29001:9001
+    - 39000:9000
+    - 39001:9001
+    depends_on:
+      - bootnode
 
+  explorer-api:
+    environment:
+    - DB_CONNECT_STRING={'host':'mysql-db','user':'adminuser','password':'password','database':'fusionblockdb','connectionLimit':100}
+    - CONNECT_STRING=ws://miner-gateway:9001
+    image: ml-fusion-blockexplorerapi
+    ports:
+    - 33000:3000
+    networks:
+      chainnet:
+        ipv4_address: 172.33.9.98
+    depends_on:
+      - mysql-db
+  explorer-fe:
+    environment:
+    - NODE_URL=ws:\/\/localhost:39001
+    - BLOCK_EXPLORER_API_URL=http:\/\/localhost:33000\/
+    image: ml-fusion-blockexplor-fe
+    ports:
+    - 38000:8000
+    networks:
+      chainnet:
+        ipv4_address: 172.33.9.97
+    depends_on:
+      - explorer-api
+  mysql-db:
+    environment:
+    - MYSQL_ROOT_PASSWORD=rootuser
+    - MYSQL_USER=adminuser
+    - MYSQL_PASSWORD=password
+    - MYSQL_DATABASE=fusionblockdb
+    image: mysql:5.7.27
+    networks:
+      chainnet:
+        ipv4_address: 172.33.9.96
 networks:
   chainnet:
     driver: bridge
